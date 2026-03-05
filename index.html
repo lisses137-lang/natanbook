@@ -104,6 +104,14 @@
         @media screen and (max-width: 768px){
             .produto-container { width: 100%; flex-direction: column; }
         }
+        @media (max-height: 500px) and (orientation: landscape) {
+            #book-clip {
+                width: 55vh !important;
+                height: 78vh !important;
+                min-height: unset !important;
+                max-height: unset !important;
+            }
+        }
         @media (max-width: 500px) {
             body { gap: 8px; }
             #book-clip {
