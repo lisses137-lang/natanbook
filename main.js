@@ -1,110 +1,529 @@
-// References to DOM Elements
-const prevBtn = document.querySelector("#prev-btn");
-const nextBtn = document.querySelector("#next-btn");
-const book = document.querySelector("#book");
-const paper1 = document.querySelector("#p1");
-const paper2 = document.querySelector("#p2");
-const paper3 = document.querySelector("#p3");
-
-// Música de fundo
-const music = document.getElementById('bg-music');
-music.volume = 0.1;
-let musicStarted = false;
-
-function startMusic() {
-    if (!musicStarted) {
-        music.play();
-        musicStarted = true;
-    }
-}
-
-// Event Listeners
-prevBtn.addEventListener("click", () => { startMusic(); goPrevPage(); });
-nextBtn.addEventListener("click", () => { startMusic(); goNextPage(); });
-
-// Business Logic
-let currentLocation = 1;
-let numOfPapers = 3;
-let maxLocation = numOfPapers + 1;
-
-// Verifica se é mobile
-function isMobile() {
-    return window.innerWidth <= 500;
-}
-
-function openBook() {
-    if (isMobile()) {
-        // No mobile o livro não se desloca, só os botões ficam parados
-        book.style.transform = "translateX(0%)";
-        prevBtn.style.transform = "translateX(0px)";
-        nextBtn.style.transform = "translateX(0px)";
-    } else {
-        const offset = book.offsetWidth / 2;
-        book.style.transform = "translateX(50%)";
-        prevBtn.style.transform = `translateX(-${offset}px)`;
-        nextBtn.style.transform = `translateX(${offset}px)`;
-    }
-}
-
-function closeBook(isAtBeginning) {
-    if (isMobile()) {
-        book.style.transform = "translateX(0%)";
-    } else {
-        book.style.transform = isAtBeginning ? "translateX(0%)" : "translateX(100%)";
-    }
-    prevBtn.style.transform = "translateX(0px)";
-    nextBtn.style.transform = "translateX(0px)";
-}
-
-function goNextPage() {
-    if (currentLocation < maxLocation) {
-        switch (currentLocation) {
-            case 1:
-                openBook();
-                paper1.classList.add("flipped");
-                paper1.style.zIndex = 1;
-                spawnButterflies();
-                break;
-            case 2:
-                paper2.classList.add("flipped");
-                paper2.style.zIndex = 2;
-                break;
-            case 3:
-                paper3.classList.add("flipped");
-                paper3.style.zIndex = 3;
-                closeBook(false);
-                break;
-            default:
-                throw new Error("unknown state");
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipbook</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        html, body { height: 100%; overflow-x: hidden; }
+        body { min-height: 100vh; display: flex; justify-content: center; align-items: center; font-family: 'Cormorant Garamond', serif; background-color: rgba(224, 61, 151, 0.342); gap: 20px; }
+        #book-clip { position: relative; z-index: 10; width: 350px; height: 500px; transition: transform 0.5s; flex-shrink: 0; }
+        .book { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
+        .paper { position: absolute; width: 100%; height: 100%; top: 0; left: 0; perspective: 1500px; }
+        .front, .back { background-color: #f5ecd5; position: absolute; width: 100%; height: 100%; top: 0; left: 0; transform-origin: left; transition: transform 0.5s; }
+        .front { z-index: 1; backface-visibility: hidden; background-image: url('folha.png'); background-size: cover; background-position: center; box-shadow: inset 0 0 0 3px rgba(210, 130, 155, 0.7); }
+        .back { z-index: 0; }
+        .back-content { transform: rotateY(180deg); background-image: url('folha.png'); background-size: cover; background-position: center; box-shadow: inset 0 0 0 3px rgba(210, 130, 155, 0.7); }
+        .front-content, .back-content { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; padding: 50px 45px; overflow-y: hidden; text-align: center; }
+        .back-content { transform: rotateY(180deg); background-image: url('folha.png'); background-size: cover; background-position: center; }
+        .front-content h1, .back-content h1 { font-size: 0.75rem; font-weight: 600; line-height: 1.6; font-family: 'Cormorant Garamond', serif; color: #2c1a0e; }
+        .flipped .front, .flipped .back { transform: rotateY(-180deg); }
+        #p1 { z-index: 3; } #p2 { z-index: 2; } #p3 { z-index: 1; }
+        #prev-btn, #next-btn { transition: transform 0.5s; flex-shrink: 0; animation: swing 2s ease-in-out infinite; }
+        @keyframes swing { 0% { transform: rotate(-20deg); } 50% { transform: rotate(20deg); } 100% { transform: rotate(-20deg); } }
+        .btn-wrapper { transition: transform 0.5s; flex-shrink: 0; }
+        button { border: none; background-color: transparent; cursor: pointer; padding: 10px; border-radius: 50%; font-size: 30px; color: #555; }
+        button img { display: block; pointer-events: none; }
+        button:focus { outline: none; } button:hover { opacity: 0.8; } button:active { transform: scale(0.95); }
+        #capa { background-image: url('Capa.png'); background-size: cover; background-position: center; padding: 0; box-shadow: inset 0 0 0 3px rgba(210, 130, 155, 0.7); }
+        #buque-animado {
+            position: absolute;
+            width: 135px;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            animation: bounce 0.8s ease-in-out infinite;
+            pointer-events: none;
         }
-        currentLocation++;
-    }
-}
-
-function goPrevPage() {
-    if (currentLocation > 1) {
-        switch (currentLocation) {
-            case 2:
-                closeBook(true);
-                paper1.classList.remove("flipped");
-                paper1.style.zIndex = 3;
-                break;
-            case 3:
-                paper2.classList.remove("flipped");
-                paper2.style.zIndex = 2;
-                break;
-            case 4:
-                openBook();
-                paper3.classList.remove("flipped");
-                paper3.style.zIndex = 1;
-                break;
-            default:
-                throw new Error("unknown state");
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50%       { transform: translateX(-50%) translateY(-15px); }
         }
-        currentLocation--;
-    }
-}
+        .buque-petal {
+            position: absolute;
+            pointer-events: none;
+            z-index: 9999;
+            animation: buquePetal var(--bp-duration) ease-out forwards;
+        }
+        @keyframes buquePetal {
+            0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+            40%  { transform: translate(var(--bp-x-mid), var(--bp-y-mid)) rotate(var(--bp-rot-mid)); opacity: 1; }
+            100% { transform: translate(var(--bp-x), var(--bp-y)) rotate(var(--bp-rot)); opacity: 0; }
+        }
+        .eu-te-amo {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #c0185a;
+            text-shadow: 0 0 20px rgba(192, 24, 90, 0.5);
+            z-index: 99999;
+            pointer-events: none;
+            animation: euTeAmo 1.2s ease forwards;
+            white-space: nowrap;
+            text-align: center;
+        }
+        @keyframes auraPulse {
+            0%   { filter: drop-shadow(0 0 10px rgba(255, 100, 160, 0.9)) drop-shadow(0 0 25px rgba(255, 150, 200, 0.6)) drop-shadow(0 0 50px rgba(255, 180, 220, 0.4)); }
+            100% { filter: drop-shadow(0 0 20px rgba(255, 80, 150, 1)) drop-shadow(0 0 45px rgba(255, 120, 190, 0.9)) drop-shadow(0 0 80px rgba(255, 160, 210, 0.7)); }
+        }
+        @keyframes euTeAmo {
+            0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            30%  { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            60%  { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            85%  { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.05); opacity: 0; }
+        }
+        .butterfly { position: fixed; pointer-events: none; font-size: 2rem; z-index: 20; animation: flyUp var(--duration) ease-in forwards; }
+        @keyframes flyUp {
+            0%   { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 1; }
+            50%  { transform: translateY(50vh) translateX(var(--sway)) rotate(20deg); opacity: 1; }
+            100% { transform: translateY(-10vh) translateX(var(--sway2)) rotate(-10deg); opacity: 0; }
+        }
+        .petal-img { position: fixed; top: -80px; pointer-events: none; z-index: 0; width: 80px; opacity: 0.9; animation: fallDown var(--fall-duration) linear forwards; }
+        @keyframes fallDown {
+            0%   { transform: translateY(-80px) translateX(0) rotate(0deg); opacity: 0.9; }
+            25%  { transform: translateY(25vh) translateX(var(--sway)) rotate(90deg); opacity: 0.9; }
+            50%  { transform: translateY(50vh) translateX(var(--sway)) rotate(180deg); opacity: 0.8; }
+            75%  { transform: translateY(75vh) translateX(var(--sway2)) rotate(270deg); opacity: 0.6; }
+            100% { transform: translateY(105vh) translateX(var(--sway2)) rotate(360deg); opacity: 0; }
+        }
+        .polaroid-fall { position: fixed; top: -150px; pointer-events: none; z-index: 1; opacity: 0.9; width: 80px; animation: fallDownPolaroid var(--fall-duration) linear forwards; }
+        @keyframes fallDownPolaroid {
+            0%   { transform: translateY(-150px) translateX(0) rotate(var(--rot-start)); opacity: 0.9; }
+            50%  { transform: translateY(50vh) translateX(var(--sway)) rotate(var(--rot-mid)); opacity: 0.8; }
+            100% { transform: translateY(105vh) translateX(var(--sway2)) rotate(var(--rot-end)); opacity: 0; }
+        }
+        @media screen and (max-width: 768px){
+            .produto-container { width: 100%; flex-direction: column; }
+        }
+        @media (max-width: 500px) {
+            body { gap: 8px; }
+            #book-clip {
+                width: 85vw;
+                height: 120vw;
+                min-height: 300px;
+                max-height: 480px;
+            }
+            .btn-wrapper {
+                position: fixed !important;
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                z-index: 100;
+            }
+            #prev-wrapper { left: 4px !important; }
+            #next-wrapper { right: 4px !important; }
+            #prev-btn, #next-btn { transform: none !important; animation: swing 2s ease-in-out infinite !important; }
+            button { font-size: 18px; padding: 8px; }
+            button img { width: 38px !important; }
+        }
+    </style>
+</head>
+<body>
+    <audio id="bg-music" loop>
+        <source src="song.mp3" type="audio/mpeg">
+    </audio>
+    <div class="btn-wrapper" id="prev-wrapper">
+        <button id="prev-btn"><img src="next.png" style="width:55px;"></button>
+    </div>
+    <div id="book-clip">
+    <div id="book" class="book">
+        <div id="p1" class="paper">
+            <div class="front"><div class="front-content" id="capa"><img id="buque-animado" src="buque_capa.png"></div></div>
+            <div class="back">
+                <div class="back-content">
+                    <h1>Tudo aconteceu tão rápido não? Quem diria que aquela conversa boba um dia se tornaria algo tão grande e especial. Não sei explicar direito o que aconteceu, não sei descrever isso. Só sei que um sentimento que toma conta de mim, um carinho bom, um carinho que conforta. Nunca imaginei que um dia alguém ia conseguir me aturar por tanto tempo. Afinal 7 meses não é pouco. Dentro desse período você me ensinou o que é o amor, me mostrou que ainda existem motivos que fazem a vida valer a pena. Passamos por cada problemas mas superamos. Tivemos nossas brigas, muitas brigas; mas nunca desistimos, quer dizer, você nunca desistiu de mim. Obrigado por tentar me fazer feliz, obrigado por tirar um sorriso meu todos os dias. Seu jeito de falar me fascina; quando você me chama de chata e ao mesmo tempo de fofa, quando você tem seus momentos de ciúmes e quando vem me zoar porque meu time perdeu, tudo isso me encanta, você por completo me faz feliz. Obrigado por me mostrar que eu ainda sei amar.</h1>
+                </div>
+            </div>
+        </div>
+        <div id="p2" class="paper">
+            <div class="front" style="background-image: url('folha2.png');">
+                <div class="front-content" style="padding: 0;">
+                    <img src="gif1.gif" style="width: 85%; height: 85%; object-fit: cover; border-radius: 8px; box-shadow: 0 0 20px 8px rgba(210, 130, 155, 0.7);">
+                </div>
+            </div>
+            <div class="back"><div class="back-content"><h1>Tudo aconteceu tão rápido não? Quem diria que aquela conversa boba um dia se tornaria algo tão grande e especial. Não sei explicar direito o que aconteceu, não sei descrever isso. Só sei que um sentimento que toma conta de mim, um carinho bom, um carinho que conforta. Nunca imaginei que um dia alguém ia conseguir me aturar por tanto tempo. Afinal 7 meses não é pouco. Dentro desse período você me ensinou o que é o amor, me mostrou que ainda existem motivos que fazem a vida valer a pena. Passamos por cada problemas mas superamos. Tivemos nossas brigas, muitas brigas; mas nunca desistimos, quer dizer, você nunca desistiu de mim. Obrigado por tentar me fazer feliz, obrigado por tirar um sorriso meu todos os dias. Seu jeito de falar me fascina; quando você me chama de chata e ao mesmo tempo de fofa, quando você tem seus momentos de ciúmes e quando vem me zoar porque meu time perdeu, tudo isso me encanta, você por completo me faz feliz. Obrigado por me mostrar que eu ainda sei amar.</h1></div></div>
+        </div>
+        <div id="p3" class="paper">
+            <div class="front" style="background-image: url('folha2.png');">
+                <div class="front-content" style="padding: 0;">
+                    <img src="gif2.gif" style="width: 85%; height: 85%; object-fit: cover; border-radius: 8px; box-shadow: 0 0 20px 8px rgba(210, 130, 155, 0.7);">
+                </div>
+            </div>
+            <div class="back">
+                <div class="back-content">
+                    <h1>Contra<i class="fas fa-heart" style="color: red; font-size: 1em; background: none; box-shadow: none; padding: 0; vertical-align: middle;"></i>a</h1>
+                </div>
+            </div>
+        </div>
+    </div> <!-- end book -->
+    </div> <!-- end book-clip -->
+    <div class="btn-wrapper" id="next-wrapper">
+        <button id="next-btn"><img src="next.png" style="width:55px;"></button>
+    </div>
+    <script>
+        const prevBtn = document.querySelector("#prev-btn");
+        const nextBtn = document.querySelector("#next-btn");
+        const prevWrapper = document.querySelector("#prev-wrapper");
+        const nextWrapper = document.querySelector("#next-wrapper");
+        const book = document.querySelector("#book");
+        const bookClip = document.querySelector("#book-clip");
+        const paper1 = document.querySelector("#p1");
+        const paper2 = document.querySelector("#p2");
+        const paper3 = document.querySelector("#p3");
+        const music = document.getElementById('bg-music');
+        music.volume = 0.2;
+        let musicStarted = false;
+        const pageSound = new Audio('pagina.mp3');
+        pageSound.volume = 0.6;
+        function startMusic() { if (!musicStarted) { music.play(); musicStarted = true; } }
+        prevBtn.addEventListener("click", () => { startMusic(); pageSound.currentTime = 0; pageSound.play(); goPrevPage(); });
+        nextBtn.addEventListener("click", () => { startMusic(); pageSound.currentTime = 0; pageSound.play(); goNextPage(); });
+        let currentLocation = 1;
+        let maxLocation = 4;
+        function isMobile() { return window.innerWidth <= 500; }
+        function openBook() {
+            if (isMobile()) {
+                bookClip.style.transform = "translateX(0%)";
+                prevWrapper.style.transform = "translateX(0px)";
+                nextWrapper.style.transform = "translateX(0px)";
+            } else {
+                const offset = bookClip.offsetWidth / 2;
+                bookClip.style.transform = "translateX(50%)";
+                prevWrapper.style.transform = `translateX(-${offset}px)`;
+                nextWrapper.style.transform = `translateX(${offset}px)`;
+            }
+        }
+        function closeBook(isAtBeginning) {
+            if (isMobile()) {
+                bookClip.style.transform = "translateX(0%)";
+            } else {
+                bookClip.style.transform = isAtBeginning ? "translateX(0%)" : "translateX(100%)";
+            }
+            prevWrapper.style.transform = "translateX(0px)";
+            nextWrapper.style.transform = "translateX(0px)";
+        }
+        
+        function updateButtons() {
+            prevWrapper.style.visibility = currentLocation === 1 ? 'hidden' : 'visible';
+            nextWrapper.style.visibility = currentLocation === maxLocation ? 'hidden' : 'visible';
+        }
 
+        function goNextPage() {
+            if (currentLocation < maxLocation) {
+                switch (currentLocation) {
+                    case 1: openBook(); paper1.classList.add("flipped"); paper1.style.zIndex = 1; spawnButterflies(); showEuTeAmo(); clearInterval(buqueInterval); break;
+                    case 2: paper2.classList.add("flipped"); paper2.style.zIndex = 2; break;
+                    case 3: paper3.classList.add("flipped"); paper3.style.zIndex = 3; closeBook(false); break;
+                }
+                currentLocation++;
+                updateButtons();
+            }
+        }
+        function goPrevPage() {
+            if (currentLocation > 1) {
+                switch (currentLocation) {
+                    case 2: closeBook(true); paper1.classList.remove("flipped"); paper1.style.zIndex = 3; spawnBuquePetals(); break;
+                    case 3: paper2.classList.remove("flipped"); paper2.style.zIndex = 2; break;
+                    case 4: openBook(); paper3.classList.remove("flipped"); paper3.style.zIndex = 1; break;
+                }
+                currentLocation--;
+                updateButtons();
+            }
+        }
+        function showEuTeAmo() {
+            const el = document.createElement('div');
+            el.classList.add('eu-te-amo');
+            el.innerHTML = '<img src="love2.png" style="width: 300px; filter: drop-shadow(0 0 12px rgba(255, 100, 160, 0.9)) drop-shadow(0 0 30px rgba(255, 150, 200, 0.7)) drop-shadow(0 0 55px rgba(255, 180, 220, 0.5)); animation: auraPulse 0.6s ease-in-out infinite alternate;">';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1200);
+        }
+        function spawnButterflies() {
+            const emojis = ['💕', '💞', '💗', '💐', '💟', '💝'];
+            for (let i = 0; i < 25; i++) {
+                setTimeout(() => {
+                    const el = document.createElement('div');
+                    el.classList.add('butterfly');
+                    el.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+                    el.style.left = Math.random() * 100 + 'vw';
+                    el.style.setProperty('--duration', (2 + Math.random() * 3) + 's');
+                    el.style.setProperty('--sway', (Math.random() * 120 - 60) + 'px');
+                    el.style.setProperty('--sway2', (Math.random() * 120 - 60) + 'px');
+                    document.body.appendChild(el);
+                    el.addEventListener('animationend', () => el.remove());
+                }, i * 180);
+            }
+        }
+        function spawnPetals() {
+            const images = [
+                { src: 'buque.png', size: '40px' },
+                { src: 'coração.png', size: '50px' },
+                { src: 'coração2.png', size: '50px' },
+                { src: 'coração3.png', size: '50px' },
+                { src: 'coração4.png', size: '50px' },
+                { src: 'coelho.png', size: '80px' },
+                { src: 'love.png', size: '40px' }
+            ];
+            petalInterval = setInterval(() => {
+                const item = images[Math.floor(Math.random() * images.length)];
+                const el = document.createElement('img');
+                el.classList.add('petal-img');
+                el.src = item.src;
+                el.style.width = item.size;
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.setProperty('--fall-duration', (14 + Math.random() * 10) + 's');
+                el.style.setProperty('--sway', (Math.random() * 80 - 40) + 'px');
+                el.style.setProperty('--sway2', (Math.random() * 80 - 40) + 'px');
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 25000);
+            }, 2000);
+        }
+        function spawnFallingPolaroids() {
+            const polaroids = ['Polaroid.png','Polaroid2.png','Polaroid3.png','Polaroid4.png'];
+            let lastPolaroid = '';
+            let lastLeft = -1;
+            polaroidInterval = setInterval(() => {
+                // Evita repetir o mesmo polaroid
+                let src;
+                do { src = polaroids[Math.floor(Math.random() * polaroids.length)]; } while (src === lastPolaroid);
+                lastPolaroid = src;
 
-spawnPetals();
-spawnFallingPolaroids();
+                // Evita posição muito próxima da anterior
+                let left;
+                do { left = Math.random() * 90; } while (Math.abs(left - lastLeft) < 20);
+                lastLeft = left;
+
+                const el = document.createElement('img');
+                el.classList.add('polaroid-fall');
+                el.src = src;
+                el.style.left = left + 'vw';
+                el.style.setProperty('--fall-duration', (16 + Math.random() * 10) + 's');
+                el.style.setProperty('--sway', (Math.random() * 80 - 40) + 'px');
+                el.style.setProperty('--sway2', (Math.random() * 80 - 40) + 'px');
+                el.style.setProperty('--rot-start', (Math.random() * 30 - 15) + 'deg');
+                el.style.setProperty('--rot-mid', (Math.random() * 40 - 20) + 'deg');
+                el.style.setProperty('--rot-end', (Math.random() * 60 - 30) + 'deg');
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 27000);
+            }, 3500);
+        }
+        let buqueInterval = null;
+        let petalInterval = null;
+        let polaroidInterval = null;
+
+        function stopAllEffects() {
+            clearInterval(petalInterval);
+            clearInterval(polaroidInterval);
+            petalInterval = null;
+            polaroidInterval = null;
+            document.querySelectorAll('.petal-img, .polaroid-fall, .butterfly').forEach(el => el.remove());
+        }
+
+        function spawnBuquePetals() {
+            const totalPetals = 16;
+            buqueInterval = setInterval(() => {
+                const el = document.createElement('img');
+                el.classList.add('buque-petal');
+                const idx = Math.floor(Math.random() * totalPetals) + 1;
+                el.src = `petalas/petala_${idx}.png`;
+                el.style.width = (18 + Math.random() * 16) + 'px';
+                el.style.left = '50%';
+                el.style.top = '20%';
+
+                // Dispersão lateral pequena
+                const spreadX = (Math.random() * 60 - 30);
+                // Meio do caminho: leve subida ou lateral
+                el.style.setProperty('--bp-x-mid', (spreadX * 0.4) + 'px');
+                el.style.setProperty('--bp-y-mid', (-20 - Math.random() * 20) + 'px');
+                el.style.setProperty('--bp-rot-mid', (Math.random() * 60 - 30) + 'deg');
+                // Final: cai para baixo com balanço
+                el.style.setProperty('--bp-x', (spreadX) + 'px');
+                el.style.setProperty('--bp-y', (80 + Math.random() * 60) + 'px');
+                el.style.setProperty('--bp-rot', (Math.random() * 180 - 90) + 'deg');
+
+                const duration = (2.5 + Math.random() * 1.5);
+                el.style.setProperty('--bp-duration', duration + 's');
+                book.appendChild(el);
+                setTimeout(() => el.remove(), duration * 1000 + 100);
+            }, 350);
+        }
+        spawnBuquePetals();
+        updateButtons();
+        spawnPetals();
+        spawnFallingPolaroids();
+
+        // ===== CONFETE CLICÁVEL =====
+        const styleConfete = document.createElement('style');
+        styleConfete.innerHTML = `
+            @keyframes bounceConfete {
+                0%, 100% { transform: translateY(0) scale(1); }
+                50%       { transform: translateY(-20px) scale(1.05); }
+            }
+            @keyframes confeteParticle {
+                0%   { transform: translate(0,0) rotate(0deg); opacity: 1; }
+                100% { transform: translate(var(--cx), var(--cy)) rotate(var(--cr)); opacity: 0; }
+            }
+            @keyframes parabensFade {
+                0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                30%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+                70%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+            }
+        `;
+        document.head.appendChild(styleConfete);
+
+        // Overlay escuro bloqueando tudo
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.45);
+            z-index: 9998;
+            display: flex; justify-content: center; align-items: center;
+        `;
+        document.body.appendChild(overlay);
+        stopAllEffects();
+
+        const confeteBtn = document.createElement('img');
+        confeteBtn.src = 'confete.png';
+        confeteBtn.style.cssText = `
+            width: 200px;
+            cursor: pointer;
+            animation: bounceConfete 0.7s ease-in-out infinite;
+            filter: drop-shadow(0 6px 16px rgba(0,0,0,0.4));
+            position: relative;
+            z-index: 9999;
+        `;
+        overlay.appendChild(confeteBtn);
+
+        let clickCount = 0;
+        const maxClicks = 3;
+
+        confeteBtn.addEventListener('click', () => {
+            clickCount++;
+
+            const colors = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff6bff','#ff922b'];
+            const rect = confeteBtn.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+
+            // Partículas a cada clique
+            for (let i = 0; i < 20; i++) {
+                const p = document.createElement('div');
+                p.style.cssText = `
+                    position: fixed;
+                    left: ${cx}px; top: ${cy}px;
+                    width: ${6 + Math.random() * 8}px;
+                    height: ${6 + Math.random() * 8}px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+                    pointer-events: none;
+                    z-index: 99999;
+                    animation: confeteParticle ${0.6 + Math.random() * 0.6}s ease-out forwards;
+                `;
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 120;
+                p.style.setProperty('--cx', (Math.cos(angle) * dist) + 'px');
+                p.style.setProperty('--cy', (Math.sin(angle) * dist) + 'px');
+                p.style.setProperty('--cr', (Math.random() * 360) + 'deg');
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 1200);
+            }
+
+            // Balança ao clicar
+            confeteBtn.style.animation = 'none';
+            setTimeout(() => confeteBtn.style.animation = 'bounceConfete 0.7s ease-in-out infinite', 100);
+
+            // Último clique: explode, remove overlay e mostra parabens
+            if (clickCount >= maxClicks) {
+                confeteBtn.style.animation = 'none';
+                confeteBtn.style.transition = 'transform 0.2s, opacity 0.3s';
+                confeteBtn.style.transform = 'scale(1.8)';
+                confeteBtn.style.opacity = '0';
+
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        const p = document.createElement('div');
+                        p.style.cssText = `
+                            position: fixed;
+                            left: ${cx}px; top: ${cy}px;
+                            width: ${8 + Math.random() * 10}px;
+                            height: ${8 + Math.random() * 10}px;
+                            background: ${colors[Math.floor(Math.random() * colors.length)]};
+                            border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+                            pointer-events: none;
+                            z-index: 99999;
+                            animation: confeteParticle ${0.8 + Math.random() * 0.8}s ease-out forwards;
+                        `;
+                        const angle = Math.random() * Math.PI * 2;
+                        const dist = 80 + Math.random() * 200;
+                        p.style.setProperty('--cx', (Math.cos(angle) * dist) + 'px');
+                        p.style.setProperty('--cy', (Math.sin(angle) * dist) + 'px');
+                        p.style.setProperty('--cr', (Math.random() * 720) + 'deg');
+                        document.body.appendChild(p);
+                        setTimeout(() => p.remove(), 1600);
+                    }, i * 20);
+                }
+
+                setTimeout(() => {
+                    overlay.remove();
+                    spawnPetals();
+                    spawnFallingPolaroids();
+
+                    // Audio confete
+                    const audioConfete = new Audio('conffeti.mp3');
+                    audioConfete.volume = 0.8;
+                    audioConfete.play();
+
+                    // Parabens caindo em toda a tela
+                    let count = 0;
+                    const maxParabens = 3;
+                    const interval = setInterval(() => {
+                        if (count >= maxParabens) { clearInterval(interval); return; }
+                        count++;
+                        const p = document.createElement('img');
+                        p.src = 'parabens.png';
+                        p.style.cssText = `
+                            position: fixed;
+                            top: -150px;
+                            left: ${Math.random() * 90}vw;
+                            width: ${180 + Math.random() * 100}px;
+                            pointer-events: none;
+                            z-index: 99999;
+                            opacity: 0.92;
+                            animation: fallDownPolaroid ${4 + Math.random() * 4}s linear forwards;
+                        `;
+                        p.style.setProperty('--fall-duration', (4 + Math.random() * 4) + 's');
+                        p.style.setProperty('--sway',      (Math.random() * 80 - 40) + 'px');
+                        p.style.setProperty('--sway2',     (Math.random() * 80 - 40) + 'px');
+                        p.style.setProperty('--rot-start', (Math.random() * 30 - 15) + 'deg');
+                        p.style.setProperty('--rot-mid',   (Math.random() * 40 - 20) + 'deg');
+                        p.style.setProperty('--rot-end',   (Math.random() * 60 - 30) + 'deg');
+                        document.body.appendChild(p);
+                        setTimeout(() => p.remove(), 8000);
+                    }, 200);
+                }, 400);
+            }
+        });
+
+        // Bloquear clique direito
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        // Bloquear seleção de texto
+        document.addEventListener('selectstart', e => e.preventDefault());
+        // Bloquear arrastar imagens
+        document.addEventListener('dragstart', e => e.preventDefault());
+        // Bloquear atalhos de teclado (Ctrl+S, Ctrl+C, Ctrl+U, F12)
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey && ['s','c','u','p'].includes(e.key.toLowerCase())) e.preventDefault();
+            if (e.key === 'F12') e.preventDefault();
+        });
+    </script>
+</body>
+</html>

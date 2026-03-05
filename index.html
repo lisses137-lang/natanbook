@@ -211,6 +211,11 @@
             nextWrapper.style.transform = "translateX(0px)";
         }
         
+        function updateButtons() {
+            prevWrapper.style.visibility = currentLocation === 1 ? 'hidden' : 'visible';
+            nextWrapper.style.visibility = currentLocation === maxLocation ? 'hidden' : 'visible';
+        }
+
         function goNextPage() {
             if (currentLocation < maxLocation) {
                 switch (currentLocation) {
@@ -219,6 +224,7 @@
                     case 3: paper3.classList.add("flipped"); paper3.style.zIndex = 3; closeBook(false); break;
                 }
                 currentLocation++;
+                updateButtons();
             }
         }
         function goPrevPage() {
@@ -229,6 +235,7 @@
                     case 4: openBook(); paper3.classList.remove("flipped"); paper3.style.zIndex = 1; break;
                 }
                 currentLocation--;
+                updateButtons();
             }
         }
         function showEuTeAmo() {
@@ -348,6 +355,7 @@
             }, 350);
         }
         spawnBuquePetals();
+        updateButtons();
         spawnPetals();
         spawnFallingPolaroids();
 
