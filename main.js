@@ -8,7 +8,7 @@ const paper3 = document.querySelector("#p3");
 
 // Música de fundo
 const music = document.getElementById('bg-music');
-music.volume = 0.5;
+music.volume = 0.1;
 let musicStarted = false;
 
 function startMusic() {
