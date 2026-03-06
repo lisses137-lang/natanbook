@@ -427,6 +427,23 @@
         spawnPetals();
         spawnFallingPolaroids();
 
+        // Reseta o livro ao mudar orientação
+        window.addEventListener('resize', () => {
+            if (!isMobile()) {
+                // Desktop: remove qualquer estado mobile
+                bookClip.classList.remove('mobile-left');
+                mobileShowLeft = false;
+            } else {
+                // Voltou pro mobile: garante estado correto
+                bookClip.classList.remove('mobile-left');
+                mobileShowLeft = false;
+                bookClip.style.transform = "translateX(0%)";
+                prevWrapper.style.transform = "translateX(0px)";
+                nextWrapper.style.transform = "translateX(0px)";
+            }
+            updateButtons();
+        });
+
         // ===== CONFETE CLICÁVEL =====
         const styleConfete = document.createElement('style');
         styleConfete.innerHTML = `
