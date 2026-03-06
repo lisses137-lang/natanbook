@@ -257,6 +257,7 @@
                         break;
                     case 3:
                         paper3.classList.add("flipped"); paper3.style.zIndex = 3; closeBook(false);
+                        if (isMobile()) setMobileView(false);
                         break;
                 }
                 currentLocation++;
@@ -293,8 +294,7 @@
         function showEuTeAmo() {
             const blurOverlay = document.createElement('div');
             blurOverlay.style.cssText = `
-                position: fixed; top: 0; left: 0;
-                width: 100vw; height: 100vh;
+                position: fixed; inset: 0;
                 background: rgba(0,0,0,0.3);
                 backdrop-filter: blur(6px);
                 -webkit-backdrop-filter: blur(6px);
@@ -450,8 +450,7 @@
         // Overlay escuro bloqueando tudo
         const overlay = document.createElement('div');
         overlay.style.cssText = `
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
+            position: fixed; inset: 0;
             background: rgba(0,0,0,0.45);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
