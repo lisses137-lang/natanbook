@@ -11,7 +11,7 @@
         html, body { height: 100%; overflow-x: hidden; }
         body { min-height: 100vh; display: flex; justify-content: center; align-items: center; font-family: 'Cormorant Garamond', serif; background-color: rgba(224, 61, 151, 0.342); gap: 20px; }
         #book-clip { position: relative; z-index: 10; width: 350px; height: 500px; transition: transform 0.5s; flex-shrink: 0; }
-        .book { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
+        .book { position: absolute; width: 100%; height: 100%; top: 0; left: 0; transition: transform 0.4s; }
         .paper { position: absolute; width: 100%; height: 100%; top: 0; left: 0; perspective: 1500px; }
         .front, .back { background-color: #f5ecd5; position: absolute; width: 100%; height: 100%; top: 0; left: 0; transform-origin: left; transition: transform 0.5s; }
         .front { z-index: 1; backface-visibility: hidden; background-image: url('folha.png'); background-size: cover; background-position: center; box-shadow: inset 0 0 0 3px rgba(210, 130, 155, 0.7); }
@@ -119,7 +119,9 @@
                 height: 120vw;
                 min-height: 300px;
                 max-height: 480px;
+                overflow: hidden;
             }
+            #book-clip.mobile-left #book { transform: translateX(100%); }
             .btn-wrapper {
                 position: fixed !important;
                 top: 50% !important;
@@ -219,28 +221,70 @@
             nextWrapper.style.transform = "translateX(0px)";
         }
         
+        let mobileShowLeft = false;
+
+        function setMobileView(showLeft) {
+            mobileShowLeft = showLeft;
+            if (showLeft) {
+                bookClip.classList.add('mobile-left');
+            } else {
+                bookClip.classList.remove('mobile-left');
+            }
+        }
+
         function updateButtons() {
             prevWrapper.style.visibility = currentLocation === 1 ? 'hidden' : 'visible';
             nextWrapper.style.visibility = currentLocation === maxLocation ? 'hidden' : 'visible';
         }
 
         function goNextPage() {
+            // Mobile: se está mostrando página esquerda, apenas desliza pra direita
+            if (isMobile() && mobileShowLeft && (currentLocation === 2 || currentLocation === 3)) {
+                setMobileView(false);
+                updateButtons();
+                return;
+            }
             if (currentLocation < maxLocation) {
                 switch (currentLocation) {
-                    case 1: openBook(); paper1.classList.add("flipped"); paper1.style.zIndex = 1; spawnButterflies(); showEuTeAmo(); clearInterval(buqueInterval); break;
-                    case 2: paper2.classList.add("flipped"); paper2.style.zIndex = 2; break;
-                    case 3: paper3.classList.add("flipped"); paper3.style.zIndex = 3; closeBook(false); break;
+                    case 1:
+                        openBook(); paper1.classList.add("flipped"); paper1.style.zIndex = 1;
+                        spawnButterflies(); showEuTeAmo(); clearInterval(buqueInterval);
+                        if (isMobile()) setMobileView(true);
+                        break;
+                    case 2:
+                        paper2.classList.add("flipped"); paper2.style.zIndex = 2;
+                        if (isMobile()) setMobileView(true);
+                        break;
+                    case 3:
+                        paper3.classList.add("flipped"); paper3.style.zIndex = 3; closeBook(false);
+                        break;
                 }
                 currentLocation++;
                 updateButtons();
             }
         }
+
         function goPrevPage() {
+            // Mobile: se está mostrando página direita num spread, volta pra esquerda
+            if (isMobile() && !mobileShowLeft && currentLocation > 1 && currentLocation < maxLocation) {
+                setMobileView(true);
+                updateButtons();
+                return;
+            }
             if (currentLocation > 1) {
                 switch (currentLocation) {
-                    case 2: closeBook(true); paper1.classList.remove("flipped"); paper1.style.zIndex = 3; spawnBuquePetals(); break;
-                    case 3: paper2.classList.remove("flipped"); paper2.style.zIndex = 2; break;
-                    case 4: openBook(); paper3.classList.remove("flipped"); paper3.style.zIndex = 1; break;
+                    case 2:
+                        closeBook(true); paper1.classList.remove("flipped"); paper1.style.zIndex = 3;
+                        spawnBuquePetals(); setMobileView(false);
+                        break;
+                    case 3:
+                        paper2.classList.remove("flipped"); paper2.style.zIndex = 2;
+                        if (isMobile()) setMobileView(false);
+                        break;
+                    case 4:
+                        openBook(); paper3.classList.remove("flipped"); paper3.style.zIndex = 1;
+                        if (isMobile()) setMobileView(false);
+                        break;
                 }
                 currentLocation--;
                 updateButtons();
