@@ -14,12 +14,12 @@
         .book { position: absolute; width: 100%; height: 100%; top: 0; left: 0; transition: transform 0.4s; }
         .paper { position: absolute; width: 100%; height: 100%; top: 0; left: 0; perspective: 1500px; }
         .front, .back { background-color: #f5ecd5; position: absolute; width: 100%; height: 100%; top: 0; left: 0; transform-origin: left; transition: transform 0.5s; }
-        .front { z-index: 1; backface-visibility: hidden; background-image: url('folha.png'); background-size: cover; background-position: center; box-shadow: inset 0 0 0 3px rgba(210, 130, 155, 0.7); }
+        .front { z-index: 1; backface-visibility: hidden; background-image: url('folhas/folha.png'); background-size: cover; background-position: center; box-shadow: inset 0 0 0 3px rgba(210, 130, 155, 0.7); }
         .back { z-index: 0; }
-        .back-content { transform: rotateY(180deg); background-image: url('folha.png'); background-size: cover; background-position: center; box-shadow: inset 0 0 0 3px rgba(210, 130, 155, 0.7); }
-        .front-content, .back-content { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; padding: 50px 45px; overflow-y: hidden; text-align: center; }
-        .back-content { transform: rotateY(180deg); background-image: url('folha.png'); background-size: cover; background-position: center; }
-        .front-content h1, .back-content h1 { font-size: 0.75rem; font-weight: 600; line-height: 1.6; font-family: 'Cormorant Garamond', serif; color: #2c1a0e; }
+        .back-content { transform: rotateY(180deg); background-image: url('folhas/folha.png'); background-size: cover; background-position: center; box-shadow: inset 0 0 0 3px rgba(210, 130, 155, 0.7); }
+        .front-content, .back-content { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding: 30px 30px; overflow-y: auto; text-align: center; }
+        .back-content { transform: rotateY(180deg); background-image: url('folhas/folha.png'); background-size: cover; background-position: center; }
+        .front-content h1, .back-content h1 { font-size: 0.95rem; font-weight: 600; line-height: 1.6; font-family: 'Cormorant Garamond', serif; color: #2c1a0e; }
         .flipped .front, .flipped .back { transform: rotateY(-180deg); }
         #p1 { z-index: 3; } #p2 { z-index: 2; } #p3 { z-index: 1; }
         #prev-btn, #next-btn { transition: transform 0.5s; flex-shrink: 0; animation: swing 2s ease-in-out infinite; }
@@ -28,7 +28,7 @@
         button { border: none; background-color: transparent; cursor: pointer; padding: 10px; border-radius: 50%; font-size: 30px; color: #555; }
         button img { display: block; pointer-events: none; }
         button:focus { outline: none; } button:hover { opacity: 0.8; } button:active { transform: scale(0.95); }
-        #capa { background-image: url('Capa.png'); background-size: cover; background-position: center; padding: 0; box-shadow: inset 0 0 0 3px rgba(210, 130, 155, 0.7); }
+        #capa { background-image: url('folhas/Capa.png'); background-size: cover; background-position: center; padding: 0; box-shadow: inset 0 0 0 3px rgba(210, 130, 155, 0.7); }
         #buque-animado {
             position: absolute;
             width: 135px;
@@ -38,6 +38,20 @@
             z-index: 20;
             animation: bounce 0.8s ease-in-out infinite;
             pointer-events: none;
+        }
+        @keyframes bounceBolo {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50%       { transform: translateY(-8px) scale(1.05); }
+        }
+        @keyframes fadeInLb {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+        @keyframes fadeOutLb {
+            from { opacity: 1; } to { opacity: 0; }
+        }
+        @keyframes popInLb {
+            from { transform: scale(0.7); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
         }
         @keyframes bounce {
             0%, 100% { transform: translateX(-50%) translateY(0); }
@@ -87,7 +101,7 @@
             50%  { transform: translateY(50vh) translateX(var(--sway)) rotate(20deg); opacity: 1; }
             100% { transform: translateY(-10vh) translateX(var(--sway2)) rotate(-10deg); opacity: 0; }
         }
-        .petal-img { position: fixed; top: -80px; pointer-events: none; z-index: 0; width: 80px; opacity: 0.9; animation: fallDown var(--fall-duration) linear forwards; }
+        .petal-img { position: fixed; top: -80px; pointer-events: none; z-index: 5; width: 80px; opacity: 0.9; animation: fallDown var(--fall-duration) linear forwards; }
         @keyframes fallDown {
             0%   { transform: translateY(-80px) translateX(0) rotate(0deg); opacity: 0.9; }
             25%  { transform: translateY(25vh) translateX(var(--sway)) rotate(90deg); opacity: 0.9; }
@@ -138,45 +152,72 @@
 </head>
 <body>
     <audio id="bg-music" loop>
-        <source src="song.mp3" type="audio/mpeg">
+        <source src="sons/song.mp3" type="audio/mpeg">
     </audio>
     <div class="btn-wrapper" id="prev-wrapper">
-        <button id="prev-btn"><img src="next.png" style="width:55px;"></button>
+        <button id="prev-btn"><img src="png/next.png" style="width:55px;"></button>
     </div>
     <div id="book-clip">
     <div id="book" class="book">
         <div id="p1" class="paper">
-            <div class="front"><div class="front-content" id="capa"><img id="buque-animado" src="buque_capa.png"></div></div>
+            <div class="front">
+                <div class="front-content" id="capa" style="background-image: url('folhas/folha.png'); background-size: cover; background-position: center; padding: 0; flex-direction: column; justify-content: space-between; overflow: hidden;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; padding: 40px 30px 10px 30px; flex: 1; width: 100%;">
+                        <div style="position:relative; border-radius: 8px; overflow: hidden; box-shadow: 0 0 18px 8px rgba(255, 100, 160, 0.75), 0 0 35px 12px rgba(255, 160, 210, 0.45);">
+                            <img src="folhas/foto1.png" style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 8px;">
+                            <div style="position:absolute;inset:0;border-radius:8px;box-shadow:inset 0 0 14px 4px rgba(255,120,180,0.5);pointer-events:none;"></div>
+                        </div>
+                        <div style="position:relative; border-radius: 8px; overflow: hidden; box-shadow: 0 0 18px 8px rgba(255, 100, 160, 0.75), 0 0 35px 12px rgba(255, 160, 210, 0.45);">
+                            <img src="folhas/foto2.png" style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 8px;">
+                            <div style="position:absolute;inset:0;border-radius:8px;box-shadow:inset 0 0 14px 4px rgba(255,120,180,0.5);pointer-events:none;"></div>
+                        </div>
+                        <div style="position:relative; border-radius: 8px; overflow: hidden; box-shadow: 0 0 18px 8px rgba(255, 100, 160, 0.75), 0 0 35px 12px rgba(255, 160, 210, 0.45);">
+                            <img src="folhas/foto3.png" style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 8px;">
+                            <div style="position:absolute;inset:0;border-radius:8px;box-shadow:inset 0 0 14px 4px rgba(255,120,180,0.5);pointer-events:none;"></div>
+                        </div>
+                        <div style="position:relative; border-radius: 8px; overflow: hidden; box-shadow: 0 0 18px 8px rgba(255, 100, 160, 0.75), 0 0 35px 12px rgba(255, 160, 210, 0.45);">
+                            <img src="folhas/foto4.png" style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 8px;">
+                            <div style="position:absolute;inset:0;border-radius:8px;box-shadow:inset 0 0 14px 4px rgba(255,120,180,0.5);pointer-events:none;"></div>
+                        </div>
+                    </div>
+                    <img id="buque-animado" src="png/buque_capa.png" style="position: absolute; width: 120px; top: 30%; left: 50%; transform: translate(-50%, -50%); z-index: 20; animation: bounce 0.8s ease-in-out infinite;">
+                    <div style="text-align: center; padding: 6px 20px 20px 20px; font-family: 'Cormorant Garamond', serif; color: #5c1a2e; font-size: 1.1rem; font-style: italic;">
+                        <p style="margin:0;"><strong>A prova do quanto eu amo você</strong></p>
+                    </div>
+                </div>
+            </div>
             <div class="back">
-                <div class="back-content">
-                    <h1>Tudo aconteceu tão rápido não? Quem diria que aquela conversa boba um dia se tornaria algo tão grande e especial. Não sei explicar direito o que aconteceu, não sei descrever isso. Só sei que um sentimento que toma conta de mim, um carinho bom, um carinho que conforta. Nunca imaginei que um dia alguém ia conseguir me aturar por tanto tempo. Afinal 7 meses não é pouco. Dentro desse período você me ensinou o que é o amor, me mostrou que ainda existem motivos que fazem a vida valer a pena. Passamos por cada problemas mas superamos. Tivemos nossas brigas, muitas brigas; mas nunca desistimos, quer dizer, você nunca desistiu de mim. Obrigado por tentar me fazer feliz, obrigado por tirar um sorriso meu todos os dias. Seu jeito de falar me fascina; quando você me chama de chata e ao mesmo tempo de fofa, quando você tem seus momentos de ciúmes e quando vem me zoar porque meu time perdeu, tudo isso me encanta, você por completo me faz feliz. Obrigado por me mostrar que eu ainda sei amar.</h1>
+                <div class="back-content" style="justify-content: center;">
+                    <h1 style="text-shadow: 0 0 8px rgba(255, 100, 160, 0.8), 0 0 20px rgba(255, 150, 200, 0.6), 0 0 35px rgba(255, 180, 220, 0.4);">💗 Hoje é dia 21/03/26, uma data muito especial para mim e para você! Mais um ano vendo você completar mais um aninho de vida. Feliz aniversário, amor! Que Deus te abençoe sempre, cuide de você e realize seus sonhos e metas. Que Deus te dê muita saúde e paz. Amor, eu te amo muito! Meus parabéns, minha princesa. Você é muito especial para mim. Fico muito feliz e emocionado por te ver crescendo...</h1>
+                    <img src="png/bolo.png" style="width: 150px; margin-top: 30px; animation: bounceBolo 0.8s ease-in-out infinite;">
                 </div>
             </div>
         </div>
         <div id="p2" class="paper">
-            <div class="front" style="background-image: url('folha2.png');">
-                <div class="front-content" style="padding: 0;">
-                    <img src="gif1.gif" style="width: 85%; height: 85%; object-fit: cover; border-radius: 8px; box-shadow: 0 0 20px 8px rgba(210, 130, 155, 0.7);">
+            <div class="front" style="background-image: url('folhas/folha2.png');">
+                <div class="front-content" style="padding: 0; display: flex; justify-content: center; align-items: center;">
+                    <img src="gif/gif1.gif" style="width: 85%; height: 85%; object-fit: cover; border-radius: 8px; box-shadow: 0 0 20px 8px rgba(210, 130, 155, 0.7);">
                 </div>
             </div>
-            <div class="back"><div class="back-content"><h1>Tudo aconteceu tão rápido não? Quem diria que aquela conversa boba um dia se tornaria algo tão grande e especial. Não sei explicar direito o que aconteceu, não sei descrever isso. Só sei que um sentimento que toma conta de mim, um carinho bom, um carinho que conforta. Nunca imaginei que um dia alguém ia conseguir me aturar por tanto tempo. Afinal 7 meses não é pouco. Dentro desse período você me ensinou o que é o amor, me mostrou que ainda existem motivos que fazem a vida valer a pena. Passamos por cada problemas mas superamos. Tivemos nossas brigas, muitas brigas; mas nunca desistimos, quer dizer, você nunca desistiu de mim. Obrigado por tentar me fazer feliz, obrigado por tirar um sorriso meu todos os dias. Seu jeito de falar me fascina; quando você me chama de chata e ao mesmo tempo de fofa, quando você tem seus momentos de ciúmes e quando vem me zoar porque meu time perdeu, tudo isso me encanta, você por completo me faz feliz. Obrigado por me mostrar que eu ainda sei amar.</h1></div></div>
+            <div class="back"><div class="back-content" style="justify-content: center;"><h1 style="text-shadow: 0 0 8px rgba(255, 100, 160, 0.8), 0 0 20px rgba(255, 150, 200, 0.6), 0 0 35px rgba(255, 180, 220, 0.4);">Que Deus te guarde e te ilumine em todos os seus caminhos, e que seus passos sejam sempre de luz. Eu te amo muito, minha garota. Você é especial demais para mim e muito importante na minha vida.<br><br><strong style="font-size:1rem;">Eu te amo, minha princesa. Aproveite muito o seu dia! 💗</strong></h1><img src="png/presente.png" style="width: 150px; margin-top: 20px; animation: bounceBolo 0.8s ease-in-out infinite;"></div></div>
         </div>
         <div id="p3" class="paper">
-            <div class="front" style="background-image: url('folha2.png');">
-                <div class="front-content" style="padding: 0;">
-                    <img src="gif2.gif" style="width: 85%; height: 85%; object-fit: cover; border-radius: 8px; box-shadow: 0 0 20px 8px rgba(210, 130, 155, 0.7);">
+            <div class="front" style="background-image: url('folhas/folha2.png');">
+                <div class="front-content" style="padding: 0; display: flex; justify-content: center; align-items: center;">
+                    <img src="gif/gif2.gif" style="width: 85%; height: 85%; object-fit: cover; border-radius: 8px; box-shadow: 0 0 20px 8px rgba(210, 130, 155, 0.7);">
                 </div>
             </div>
             <div class="back">
-                <div class="back-content">
-                    <h1>Contra<i class="fas fa-heart" style="color: red; font-size: 1em; background: none; box-shadow: none; padding: 0; vertical-align: middle;"></i>a</h1>
+                <div class="back-content" style="justify-content: center;">
+                    <h1 style="text-shadow: 0 0 8px rgba(255, 100, 160, 0.8), 0 0 20px rgba(255, 150, 200, 0.6), 0 0 35px rgba(255, 180, 220, 0.4);">💗 Hoje é dia 21/03/26, um dia muito especial para mim e para você. Mais um ano vendo você crescer e completar mais um aninho de vida.<br><br>Feliz aniversário, amor! Que Deus te abençoe, cuide de você e ilumine sempre os seus caminhos.<br><br>Minha princesa, você é muito especial para mim. Eu te amo muito. Aproveite muito o seu dia! 💗</h1>
+                    <img src="png/gif3.gif" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px; margin-top: 15px; box-shadow: 0 0 20px 8px rgba(210, 130, 155, 0.7);">
                 </div>
             </div>
         </div>
-    </div> <!-- end book -->
-    </div> <!-- end book-clip -->
+    </div>
+    </div>
     <div class="btn-wrapper" id="next-wrapper">
-        <button id="next-btn"><img src="next.png" style="width:55px;"></button>
+        <button id="next-btn"><img src="png/next.png" style="width:55px;"></button>
     </div>
     <script>
         const prevBtn = document.querySelector("#prev-btn");
@@ -191,7 +232,7 @@
         const music = document.getElementById('bg-music');
         music.volume = 0.2;
         let musicStarted = false;
-        const pageSound = new Audio('pagina.mp3');
+        const pageSound = new Audio('sons/pagina.mp3');
         pageSound.volume = 0.6;
         function startMusic() { if (!musicStarted) { music.play(); musicStarted = true; } }
         prevBtn.addEventListener("click", () => { startMusic(); pageSound.currentTime = 0; pageSound.play(); goPrevPage(); });
@@ -220,9 +261,7 @@
             prevWrapper.style.transform = "translateX(0px)";
             nextWrapper.style.transform = "translateX(0px)";
         }
-        
         let mobileShowLeft = false;
-
         function setMobileView(showLeft) {
             mobileShowLeft = showLeft;
             if (showLeft) {
@@ -231,14 +270,11 @@
                 bookClip.classList.remove('mobile-left');
             }
         }
-
         function updateButtons() {
             prevWrapper.style.visibility = currentLocation === 1 ? 'hidden' : 'visible';
             nextWrapper.style.visibility = currentLocation === maxLocation ? 'hidden' : 'visible';
         }
-
         function goNextPage() {
-            // Mobile: se está mostrando página esquerda, apenas desliza pra direita
             if (isMobile() && mobileShowLeft && (currentLocation === 2 || currentLocation === 3)) {
                 setMobileView(false);
                 updateButtons();
@@ -264,9 +300,7 @@
                 updateButtons();
             }
         }
-
         function goPrevPage() {
-            // Mobile: se está mostrando página direita num spread, volta pra esquerda
             if (isMobile() && !mobileShowLeft && currentLocation > 1 && currentLocation < maxLocation) {
                 setMobileView(true);
                 updateButtons();
@@ -292,6 +326,11 @@
             }
         }
         function showEuTeAmo() {
+            clearInterval(petalInterval);
+            clearInterval(polaroidInterval);
+            document.querySelectorAll('.petal-img, .polaroid-fall, .butterfly').forEach(el => {
+                el.style.animationPlayState = 'paused';
+            });
             const blurOverlay = document.createElement('div');
             blurOverlay.style.cssText = `
                 position: fixed; inset: 0;
@@ -302,24 +341,28 @@
                 pointer-events: none;
             `;
             document.body.appendChild(blurOverlay);
-
             const el = document.createElement('div');
             el.classList.add('eu-te-amo');
-            el.innerHTML = '<img src="love2.png" style="width: 300px; filter: drop-shadow(0 0 12px rgba(255, 100, 160, 0.9)) drop-shadow(0 0 30px rgba(255, 150, 200, 0.7)) drop-shadow(0 0 55px rgba(255, 180, 220, 0.5)); animation: auraPulse 0.6s ease-in-out infinite alternate;">';
+            el.innerHTML = '<img src="png/love2.png" style="width: 300px; filter: drop-shadow(0 0 12px rgba(255, 100, 160, 0.9)) drop-shadow(0 0 30px rgba(255, 150, 200, 0.7)) drop-shadow(0 0 55px rgba(255, 180, 220, 0.5)); animation: auraPulse 0.6s ease-in-out infinite alternate;">';
             document.body.appendChild(el);
-
             setTimeout(() => {
                 el.remove();
                 blurOverlay.remove();
+                document.querySelectorAll('.petal-img, .polaroid-fall, .butterfly').forEach(e => {
+                    e.style.animationPlayState = 'running';
+                });
+                spawnPetals();
+                spawnFallingPolaroids();
             }, 1200);
         }
         function spawnButterflies() {
-            const emojis = ['💕', '💞', '💗', '💐', '💟', '💝'];
+            const balloons = ['balão/balao_rosa_claro.png','balão/balao_rosa_escuro.png','balão/balao_rosa_medio.png'];
             for (let i = 0; i < 25; i++) {
                 setTimeout(() => {
-                    const el = document.createElement('div');
+                    const el = document.createElement('img');
                     el.classList.add('butterfly');
-                    el.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+                    el.src = balloons[Math.floor(Math.random() * balloons.length)];
+                    el.style.width = '50px';
                     el.style.left = Math.random() * 100 + 'vw';
                     el.style.setProperty('--duration', (2 + Math.random() * 3) + 's');
                     el.style.setProperty('--sway', (Math.random() * 120 - 60) + 'px');
@@ -331,13 +374,13 @@
         }
         function spawnPetals() {
             const images = [
-                { src: 'buque.png', size: '40px' },
-                { src: 'coração.png', size: '50px' },
-                { src: 'coração2.png', size: '50px' },
-                { src: 'coração3.png', size: '50px' },
-                { src: 'coração4.png', size: '50px' },
-                { src: 'coelho.png', size: '80px' },
-                { src: 'love.png', size: '40px' }
+                { src: 'fundo/buque.png', size: '40px' },
+                { src: 'fundo/coração.png', size: '50px' },
+                { src: 'fundo/coração2.png', size: '50px' },
+                { src: 'fundo/coração3.png', size: '50px' },
+                { src: 'fundo/coração4.png', size: '50px' },
+                { src: 'fundo/coelho.png', size: '80px' },
+                { src: 'fundo/love.png', size: '40px' }
             ];
             petalInterval = setInterval(() => {
                 const item = images[Math.floor(Math.random() * images.length)];
@@ -354,20 +397,16 @@
             }, 2000);
         }
         function spawnFallingPolaroids() {
-            const polaroids = ['Polaroid.png','Polaroid2.png','Polaroid3.png','Polaroid4.png'];
+            const polaroids = ['polaroid/Polaroid.png','polaroid/Polaroid2.png','polaroid/Polaroid3.png','polaroid/Polaroid4.png'];
             let lastPolaroid = '';
             let lastLeft = -1;
             polaroidInterval = setInterval(() => {
-                // Evita repetir o mesmo polaroid
                 let src;
                 do { src = polaroids[Math.floor(Math.random() * polaroids.length)]; } while (src === lastPolaroid);
                 lastPolaroid = src;
-
-                // Evita posição muito próxima da anterior
                 let left;
                 do { left = Math.random() * 90; } while (Math.abs(left - lastLeft) < 20);
                 lastLeft = left;
-
                 const el = document.createElement('img');
                 el.classList.add('polaroid-fall');
                 el.src = src;
@@ -378,14 +417,58 @@
                 el.style.setProperty('--rot-start', (Math.random() * 30 - 15) + 'deg');
                 el.style.setProperty('--rot-mid', (Math.random() * 40 - 20) + 'deg');
                 el.style.setProperty('--rot-end', (Math.random() * 60 - 30) + 'deg');
+                el.style.pointerEvents = 'auto';
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', () => showPolaroidLightbox(src));
                 document.body.appendChild(el);
                 setTimeout(() => el.remove(), 27000);
             }, 3500);
         }
+        function showPolaroidLightbox(src) {
+            clearInterval(petalInterval);
+            clearInterval(polaroidInterval);
+            document.querySelectorAll('.petal-img, .polaroid-fall, .butterfly').forEach(el => {
+                el.style.animationPlayState = 'paused';
+            });
+            const lb = document.createElement('div');
+            lb.style.cssText = `
+                position: fixed; inset: 0;
+                background: rgba(0,0,0,0.75);
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
+                z-index: 99999;
+                display: flex; justify-content: center; align-items: center;
+                animation: fadeInLb 0.3s ease;
+            `;
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.cssText = `
+                max-width: 85vw;
+                max-height: 80vh;
+                border-radius: 8px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+                animation: popInLb 0.3s ease;
+            `;
+            lb.appendChild(img);
+            function closeLightbox() {
+                lb.style.animation = 'fadeOutLb 0.25s ease forwards';
+                setTimeout(() => {
+                    lb.remove();
+                    document.querySelectorAll('.petal-img, .polaroid-fall, .butterfly').forEach(el => {
+                        el.style.animationPlayState = 'running';
+                    });
+                    spawnPetals();
+                    spawnFallingPolaroids();
+                }, 250);
+            }
+            lb.addEventListener('click', closeLightbox);
+            const autoClose = setTimeout(closeLightbox, 5000);
+            lb.addEventListener('click', () => clearTimeout(autoClose), { once: true });
+            document.body.appendChild(lb);
+        }
         let buqueInterval = null;
         let petalInterval = null;
         let polaroidInterval = null;
-
         function stopAllEffects() {
             clearInterval(petalInterval);
             clearInterval(polaroidInterval);
@@ -393,7 +476,6 @@
             polaroidInterval = null;
             document.querySelectorAll('.petal-img, .polaroid-fall, .butterfly').forEach(el => el.remove());
         }
-
         function spawnBuquePetals() {
             const totalPetals = 16;
             buqueInterval = setInterval(() => {
@@ -403,19 +485,15 @@
                 el.src = `petalas/petala_${idx}.png`;
                 el.style.width = (18 + Math.random() * 16) + 'px';
                 el.style.left = '50%';
-                el.style.top = '20%';
-
-                // Dispersão lateral pequena
-                const spreadX = (Math.random() * 60 - 30);
-                // Meio do caminho: leve subida ou lateral
+                el.style.top = '30%';
+                const spreadX = (Math.random() * 80 - 40);
+                const goBack = Math.random() > 0.5;
                 el.style.setProperty('--bp-x-mid', (spreadX * 0.4) + 'px');
-                el.style.setProperty('--bp-y-mid', (-20 - Math.random() * 20) + 'px');
-                el.style.setProperty('--bp-rot-mid', (Math.random() * 60 - 30) + 'deg');
-                // Final: cai para baixo com balanço
+                el.style.setProperty('--bp-y-mid', (-25 - Math.random() * 20) + 'px');
+                el.style.setProperty('--bp-rot-mid', (Math.random() * 80 - 40) + 'deg');
                 el.style.setProperty('--bp-x', (spreadX) + 'px');
-                el.style.setProperty('--bp-y', (80 + Math.random() * 60) + 'px');
-                el.style.setProperty('--bp-rot', (Math.random() * 180 - 90) + 'deg');
-
+                el.style.setProperty('--bp-y', goBack ? (-60 - Math.random() * 40) + 'px' : (90 + Math.random() * 60) + 'px');
+                el.style.setProperty('--bp-rot', (Math.random() * 360 - 180) + 'deg');
                 const duration = (2.5 + Math.random() * 1.5);
                 el.style.setProperty('--bp-duration', duration + 's');
                 book.appendChild(el);
@@ -426,15 +504,11 @@
         updateButtons();
         spawnPetals();
         spawnFallingPolaroids();
-
-        // Reseta o livro ao mudar orientação
         window.addEventListener('resize', () => {
             if (!isMobile()) {
-                // Desktop: remove qualquer estado mobile
                 bookClip.classList.remove('mobile-left');
                 mobileShowLeft = false;
             } else {
-                // Voltou pro mobile: garante estado correto
                 bookClip.classList.remove('mobile-left');
                 mobileShowLeft = false;
                 bookClip.style.transform = "translateX(0%)";
@@ -443,8 +517,6 @@
             }
             updateButtons();
         });
-
-        // ===== CONFETE CLICÁVEL =====
         const styleConfete = document.createElement('style');
         styleConfete.innerHTML = `
             @keyframes bounceConfete {
@@ -463,8 +535,6 @@
             }
         `;
         document.head.appendChild(styleConfete);
-
-        // Overlay escuro bloqueando tudo
         const overlay = document.createElement('div');
         overlay.style.cssText = `
             position: fixed; inset: 0;
@@ -476,9 +546,8 @@
         `;
         document.body.appendChild(overlay);
         stopAllEffects();
-
         const confeteBtn = document.createElement('img');
-        confeteBtn.src = 'confete.png';
+        confeteBtn.src = 'png/confete.png';
         confeteBtn.style.cssText = `
             width: 200px;
             cursor: pointer;
@@ -488,19 +557,14 @@
             z-index: 9999;
         `;
         overlay.appendChild(confeteBtn);
-
         let clickCount = 0;
         const maxClicks = 3;
-
         confeteBtn.addEventListener('click', () => {
             clickCount++;
-
             const colors = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff6bff','#ff922b'];
             const rect = confeteBtn.getBoundingClientRect();
             const cx = rect.left + rect.width / 2;
             const cy = rect.top + rect.height / 2;
-
-            // Partículas a cada clique
             for (let i = 0; i < 20; i++) {
                 const p = document.createElement('div');
                 p.style.cssText = `
@@ -522,18 +586,13 @@
                 document.body.appendChild(p);
                 setTimeout(() => p.remove(), 1200);
             }
-
-            // Balança ao clicar
             confeteBtn.style.animation = 'none';
             setTimeout(() => confeteBtn.style.animation = 'bounceConfete 0.7s ease-in-out infinite', 100);
-
-            // Último clique: explode, remove overlay e mostra parabens
             if (clickCount >= maxClicks) {
                 confeteBtn.style.animation = 'none';
                 confeteBtn.style.transition = 'transform 0.2s, opacity 0.3s';
                 confeteBtn.style.transform = 'scale(1.8)';
                 confeteBtn.style.opacity = '0';
-
                 for (let i = 0; i < 50; i++) {
                     setTimeout(() => {
                         const p = document.createElement('div');
@@ -557,25 +616,20 @@
                         setTimeout(() => p.remove(), 1600);
                     }, i * 20);
                 }
-
                 setTimeout(() => {
                     overlay.remove();
                     spawnPetals();
                     spawnFallingPolaroids();
-
-                    // Audio confete
-                    const audioConfete = new Audio('conffeti.mp3');
+                    const audioConfete = new Audio('sons/conffeti.mp3');
                     audioConfete.volume = 0.8;
                     audioConfete.play();
-
-                    // Parabens caindo em toda a tela
                     let count = 0;
                     const maxParabens = 3;
                     const interval = setInterval(() => {
                         if (count >= maxParabens) { clearInterval(interval); return; }
                         count++;
                         const p = document.createElement('img');
-                        p.src = 'parabens.png';
+                        p.src = 'png/parabens.png';
                         p.style.cssText = `
                             position: fixed;
                             top: -150px;
@@ -598,14 +652,9 @@
                 }, 400);
             }
         });
-
-        // Bloquear clique direito
         document.addEventListener('contextmenu', e => e.preventDefault());
-        // Bloquear seleção de texto
         document.addEventListener('selectstart', e => e.preventDefault());
-        // Bloquear arrastar imagens
         document.addEventListener('dragstart', e => e.preventDefault());
-        // Bloquear atalhos de teclado (Ctrl+S, Ctrl+C, Ctrl+U, F12)
         document.addEventListener('keydown', e => {
             if (e.ctrlKey && ['s','c','u','p'].includes(e.key.toLowerCase())) e.preventDefault();
             if (e.key === 'F12') e.preventDefault();
